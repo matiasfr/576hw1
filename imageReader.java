@@ -7,10 +7,7 @@ import javax.imageio.ImageIO;
 
 public class imageReader {
 
-    public static int outputWidth = 0;
-    public static int outputHeight = 0;
-    public static boolean upScale = false;
-    public static int resampleFormat = 0;
+
   
    public static void main(String[] args) 
    {
@@ -19,24 +16,29 @@ public class imageReader {
 
    	int width = Integer.parseInt(args[1]);
 	int height = Integer.parseInt(args[2]);
-	resampleFormat = Integer.parseInt(args[3]);
+	int resampleFormat = Integer.parseInt(args[3]);
 	String outputFormat = args[4];
 
-	if(outputFormat == "O1") {
-        outputWidth = 1080;
-        outputHeight = 1920;
-    } else if(outputFormat == "O2") {
+	int outputWidth = 0;
+	int outputHeight = 0;
+
+	if(outputFormat.equals("O1")) {
+        outputWidth = 1920;
+        outputHeight = 1080;
+    } else if(outputFormat.equals("O2")) {
         outputWidth = 1280;
         outputHeight = 720;
-    } else if(outputFormat == "O3") {
+    } else if(outputFormat.equals("O3") ) {
         outputWidth = 640;
         outputHeight = 480;
     }
+
+    boolean upScale = false;
     //see if we need to upscale or downscale
     if( outputWidth > width ) {
-	    upScale = false;
-    } else {
 	    upScale = true;
+    } else {
+	    upScale = false;
     }
 	
     BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -84,11 +86,11 @@ public class imageReader {
     if (upScale == true) { //upscale
         if(resampleFormat == 1) {
             //Nearest neighbor to choose your up sampled pixel
-            outputImage = upsampleNearestNeighbor(width, height, img);
+            outputImage = upsampleNearestNeighbor(img, outputWidth, outputHeight);
 
         } else if (resampleFormat == 2) {
                 //Bilinear/Cubic interpolation
-            outputImage = upsampleCubic(width, height, img);
+            outputImage = upsampleCubic(img, outputWidth, outputHeight);
         } else {
             //resample format not inputted correctly, return same image
             outputImage = img;
@@ -96,17 +98,17 @@ public class imageReader {
    } else { //downscale
         if(resampleFormat == 1) {
             //Specific/Random sampling where you choose a specific pixel
-            outputImage = downsampleSpecific(width, height, img);
+            outputImage = downsampleSpecific(img, outputWidth, outputHeight);
         } else if (resampleFormat == 2 ){
                 //Gaussian smoothing where you choose the average of a set of sample
-            outputImage = downsampleGaussian(width, height, img);
+            outputImage = downsampleGaussian(img, outputWidth, outputHeight);
         } else {
             //resample format incorrect, return same iamge
             outputImage = img;
 
         }
     }
-       
+
 
     // Use a panel and label to display the image
     JPanel  panel = new JPanel ();
@@ -130,24 +132,34 @@ public class imageReader {
 
    }
 
-    public static BufferedImage downsampleSpecific(int width, int height, BufferedImage img) {
+    public static BufferedImage downsampleSpecific(BufferedImage inputImg, int outputWidth, int outputHeight) {
+        int inputH = inputImg.getHeight(), inputW = inputImg.getWidth();
+        BufferedImage newImg = new BufferedImage(outputWidth, outputHeight, BufferedImage.TYPE_INT_RGB);
+        for(int x=0; x<outputWidth; x++) {
+            for(int y=0;y<outputHeight;y++) {
+//                newImg.setRGB(x,y,inputImg.getRGB(x*outputWidth/inputW,y*outputHeight/inputH) );
+                newImg.setRGB(x,y,inputImg.getRGB(x,y) );
 
-       return img;
+            }
+        }
+
+       return newImg;
     }
 
-    public static BufferedImage downsampleGaussian(int width, int height, BufferedImage img) {
-
-        return img;
+    public static BufferedImage downsampleGaussian(BufferedImage inputImg, int outputWidth, int outputHeight) {
+        int inputH = inputImg.getHeight(), inputW = inputImg.getWidth();
+        return inputImg;
     }
 
-    public static BufferedImage upsampleNearestNeighbor(int width, int height, BufferedImage img) {
+    public static BufferedImage upsampleNearestNeighbor(BufferedImage inputImg, int outputWidth, int outputHeight) {
+       int inputH = inputImg.getHeight(), inputW = inputImg.getWidth();
+        BufferedImage newImg = new BufferedImage(outputWidth, outputHeight, BufferedImage.TYPE_INT_RGB);
 
-        return img;
+        return inputImg;
     }
 
-    public static BufferedImage upsampleCubic(int width, int height, BufferedImage img) {
-
-        return img;
+    public static BufferedImage upsampleCubic(BufferedImage inputImg, int outputWidth, int outputHeight) {
+        return inputImg;
     }
 
 
