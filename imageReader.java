@@ -79,26 +79,38 @@ public class imageReader {
       e.printStackTrace();
     }
 
-    //now upscale or downscale according to resample param
-    if (upScale == true) {
+       BufferedImage outputImage;
+
+    if (upScale == true) { //upscale
         if(resampleFormat == 1) {
             //Nearest neighbor to choose your up sampled pixel
-        } else if {
-            resampleFormat == 2 {
+            outputImage = upsampleNearestNeighbor(width, height, img);
+
+        } else if (resampleFormat == 2) {
                 //Bilinear/Cubic interpolation
-           }
-       } else {
-            //resample format not inputted correctly
+            outputImage = upsampleCubic(width, height, img);
+        } else {
+            //resample format not inputted correctly, return same image
+            outputImage = img;
        }
-   } else {
+   } else { //downscale
+        if(resampleFormat == 1) {
+            //Specific/Random sampling where you choose a specific pixel
+            outputImage = downsampleSpecific(width, height, img);
+        } else if (resampleFormat == 2 ){
+                //Gaussian smoothing where you choose the average of a set of sample
+            outputImage = downsampleGaussian(width, height, img);
+        } else {
+            //resample format incorrect, return same iamge
+            outputImage = img;
 
-        
+        }
     }
+       
 
-    
     // Use a panel and label to display the image
     JPanel  panel = new JPanel ();
-    panel.add (new JLabel (new ImageIcon (img)));
+    panel.add (new JLabel (new ImageIcon (outputImage)));
     
     JFrame frame = new JFrame("Display images");
     
@@ -111,16 +123,31 @@ public class imageReader {
 
            //output created image
            File outputFile = new File("output.png");
-           ImageIO.write(img, "png", outputFile); //todo: change this so that it uses the output image instead of the inputted img
+           ImageIO.write(outputImage, "png", outputFile); //todo: change this so that it uses the output image instead of the inputted img
        } catch(IOException e) {
            e.printStackTrace();
        }
 
    }
 
-    public BufferedImage resampleImage(int width, int height, BufferedImage img) {
+    public static BufferedImage downsampleSpecific(int width, int height, BufferedImage img) {
 
        return img;
+    }
+
+    public static BufferedImage downsampleGaussian(int width, int height, BufferedImage img) {
+
+        return img;
+    }
+
+    public static BufferedImage upsampleNearestNeighbor(int width, int height, BufferedImage img) {
+
+        return img;
+    }
+
+    public static BufferedImage upsampleCubic(int width, int height, BufferedImage img) {
+
+        return img;
     }
 
 
