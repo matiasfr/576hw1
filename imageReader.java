@@ -214,7 +214,6 @@ public class imageReader {
                 //after we've avergaed the colors, scale the result to the proper place
                 newImg.setRGB(x,y,avgColor);
 
-
             }
         }
 
@@ -222,10 +221,17 @@ public class imageReader {
     }
 
     public static BufferedImage upsampleNearestNeighbor(BufferedImage inputImg, int outputWidth, int outputHeight) {
-       int inputH = inputImg.getHeight(), inputW = inputImg.getWidth();
+       int inputHeight = inputImg.getHeight(), inputWidth = inputImg.getWidth();
         BufferedImage newImg = new BufferedImage(outputWidth, outputHeight, BufferedImage.TYPE_INT_RGB);
+        float x_ratio = ((float)inputWidth)/outputWidth;
+        float y_ratio = ((float)inputHeight)/outputHeight;
 
-        return inputImg;
+        for(int x=0; x<outputWidth; x++) {
+            for(int y=0;y<outputHeight;y++) {
+                newImg.setRGB(x,y,inputImg.getRGB((int)(x*x_ratio),(int)(y*y_ratio)));
+            }
+        }
+        return newImg;
     }
 
     public static BufferedImage upsampleCubic(BufferedImage inputImg, int outputWidth, int outputHeight) {
