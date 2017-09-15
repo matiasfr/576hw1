@@ -158,6 +158,7 @@ public class imageReader {
         redCount += center.getRed();
         greenCount += center.getGreen();
         blueCount += center.getBlue();
+        //get all neighboring pixels for average. use symmetric boundary option
 
         //get up
         Color up = new Color(img.getRGB(x, y));
@@ -238,40 +239,99 @@ public class imageReader {
         int inputHeight = inputImg.getHeight(), inputWidth = inputImg.getWidth();
 
         BufferedImage newImg = new BufferedImage(outputWidth, outputHeight, BufferedImage.TYPE_INT_RGB);
-        float x_ratio = ((float)inputWidth-1)/outputWidth;
-        float y_ratio = ((float)inputHeight-1)/outputHeight;
+        float x_ratio = ((float)inputWidth)/outputWidth;
+        float y_ratio = ((float)inputHeight)/outputHeight;
 
-        int A, B, C, D, x, y, index, gray ;
+        for(int x=0; x<outputWidth; x++) {
+            for(int y=0;y<outputHeight;y++) {
+                float xp = x*x_ratio;
+                float x_offset = (float) (xp - Math.floor(xp));
+                float yp = y*y_ratio;
+                float y_offset = (float) (yp - Math.floor(yp));
+                
+                Color topLeft = new Color(inputImg.getRGB( (int)(xp), (int)(yp) ) );
+
+                Color topRight = new Color(Color.black.getRGB());
+                if((int)((xp)+1) < inputWidth) {
+                    topRight = new Color(inputImg.getRGB((int) ((xp) + 1), (int) (yp)));
+                }
+                Color botleft = new Color(Color.black.getRGB());
+                if((int)((yp)+1) < inputHeight) {
+                    botleft = new Color(inputImg.getRGB( (int)(xp), (int)((yp)+1) ) );
+                }
+
+                Color botRight = new Color(Color.black.getRGB());
+                if( (int)((xp)+1) < inputWidth  && (int)((yp)+1) < inputHeight) {
+                    botRight = new Color(inputImg.getRGB((int)((xp)+1), (int)((yp)+1) ) );
+                }
+
+                int redVal = (int) (topLeft.getRed() * (1-x_offset)*(1-y_offset) +
+                        topRight.getRed() * (x_offset) * (1-y_offset) +
+                        botleft.getRed() * (1-x_offset) * (y_offset) +
+                        botRight.getRed() * (x_offset) * (y_offset));
 
 
-        float x_diff, y_diff, ya, yb ;
-        int offset = 0 ;
-        for (int i=0;i<outputHeight;i++) {
-            for (int j = 0; j < outputWidth; j++) {
-                x = (int) (x_ratio * j);
-                y = (int) (y_ratio * i);
-                x_diff = (x_ratio * j) - x;
-                y_diff = (y_ratio * i) - y;
-                index = y * inputWidth + x;
 
-                // range is 0 to 255 thus bitwise AND with 0xff
-                A = inputImg.getRGB(x, y) & 0xff;
-                B = inputImg.getRGB(x + 1, y) & 0xff;
-                C = inputImg.getRGB(x, y + 1) & 0xff;
-                D = inputImg.getRGB(x + 1, y + 1) & 0xff;
+                int greenVal = (int) (topLeft.getGreen() * (1-x_offset)*(1-y_offset) +
+                        topRight.getGreen() * (x_offset) * (1-y_offset) +
+                        botleft.getGreen() * (1-x_offset) * (y_offset) +
+                        botRight.getGreen() * (x_offset) * (y_offset));
 
-                // Y = A(1-w)(1-h) + B(w)(1-h) + C(h)(1-w) + Dwh
-                gray = (int) (
-                        A * (1 - x_diff) * (1 - y_diff) + B * (x_diff) * (1 - y_diff) +
-                                C * (y_diff) * (1 - x_diff) + D * (x_diff * y_diff)
-                );
 
-                newImg.setRGB(x,y,gray);
+                 int blueVal = (int) (topLeft.getBlue() * (1-x_offset)*(1-y_offset) +
+                                         topRight.getBlue() * (x_offset) * (1-y_offset) +
+                                          botleft.getBlue() * (1-x_offset) * (y_offset) +
+                                          botRight.getBlue() * (x_offset) * (y_offset));
+
+                 Color finalColor = new Color(redVal, greenVal, blueVal);
+
+
+                // rgbvalue((int)(xp), (int)(yp))* (1-xoffset)*(1-yoffset)
+                        //rgbvalue ((int)(xp)+1, (int)(yp)) * (xoffset) * (1-yoffset)
+                        //rgbvalue ((int)(xp), (int)(yp)+1) * (1-xoffset) * (yoffset)
+                        //rgbvalue ((int)(xp)+1, (int)(yp)+1) * (xoffset) * (yoffset)
+                //+
+                //per color
+
+                newImg.setRGB(x,y, finalColor.getRGB());
             }
         }
+
+        //pseudocode. use ratios ((int)(x*x_ratio),(int)(y*y_ratio)) to get coordinate. then get rect colors around it (right, right-down, down).
+        // //if any are off a boundary just do a linear interpolation or just use 0 to interpolate with.
+
 
         return newImg;
     }
 
 
 }
+
+//        int A, B, C, D, x, y, index, gray ;
+//
+//
+//        float x_diff, y_diff, ya, yb ;
+//        int offset = 0 ;
+//        for (int i=0;i<outputHeight;i++) {
+//            for (int j = 0; j < outputWidth; j++) {
+//                x = (int) (x_ratio * j);
+//                y = (int) (y_ratio * i);
+//                x_diff = (x_ratio * j) - x;
+//                y_diff = (y_ratio * i) - y;
+//                index = y * inputWidth + x;
+//
+//                // range is 0 to 255 thus bitwise AND with 0xff
+//                A = inputImg.getRGB(x, y) & 0xff;
+//                B = inputImg.getRGB(x + 1, y) & 0xff;
+//                C = inputImg.getRGB(x, y + 1) & 0xff;
+//                D = inputImg.getRGB(x + 1, y + 1) & 0xff;
+//
+//                // Y = A(1-w)(1-h) + B(w)(1-h) + C(h)(1-w) + Dwh
+//                gray = (int) (
+//                        A * (1 - x_diff) * (1 - y_diff) + B * (x_diff) * (1 - y_diff) +
+//                                C * (y_diff) * (1 - x_diff) + D * (x_diff * y_diff)
+//                );
+//
+//                newImg.setRGB(x,y,gray);
+//            }
+//        }
